@@ -43,17 +43,17 @@ const confirmarMail = async (req, res) => {
         const usuarioBDD = await Usuario.findOne({ token });
 
         if (!usuarioBDD) {
-            return res.redirect(`${process.env.URL_FRONTEND}/confirmar/error`);
+            return res.status(404).json({ msg: "Token inválido o ya confirmado" });
         }
 
         usuarioBDD.token = null;
         usuarioBDD.confirmEmail = true;
         await usuarioBDD.save();
 
-        return res.redirect(`${process.env.URL_FRONTEND}/confirmar/exito`);
+        return res.status(200).json({ msg: "Cuenta confirmada ✅" });
 
-    } catch {
-        return res.redirect(`${process.env.URL_FRONTEND}/confirmar/error`);
+    } catch (error) {
+        return res.status(500).json({ msg: "Error al confirmar la cuenta" });
     }
 };
 
