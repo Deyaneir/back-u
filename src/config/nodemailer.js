@@ -1,10 +1,9 @@
+// src/config/nodemailer.js
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config();
 
 // 🔹 Verificar variables de entorno
-// NOTA IMPORTANTE: URL_BACKEND sólo se usa para el CORS y para la URL de la API (si fuera necesario),
-// pero la confirmación de correo DEBE usar URL_FRONTEND para dirigir al usuario a la interfaz.
 const { USER_EMAIL, USER_PASS, URL_BACKEND, URL_FRONTEND } = process.env;
 if (!USER_EMAIL || !USER_PASS || !URL_BACKEND || !URL_FRONTEND) {
   throw new Error("❌ Falta configurar alguna variable de entorno en .env");
@@ -73,21 +72,7 @@ const sendMail = async (to, subject, html) => {
 // 🟣 CORREO DE CONFIRMACIÓN (Registro)
 // ======================================================
 const sendMailToRegister = async (userMail, token) => {
-  // ✅ CORRECCIÓN: Debe usar URL_FRONTEND para que React se encargue de la interfaz
-  // y URL_BACKEND para que el componente React haga la llamada a la API.
-  // Sin embargo, en el flujo de confirmación directo, DEBEMOS llamar al backend para procesar el token.
-  // El backend luego REDIRIGE al frontend. Por lo tanto, el enlace debe apuntar al BACKEND (la API).
-  // PERO: Si la API devuelve un JSON, significa que NO ESTÁ REDIRIGIENDO.
-  // DADO QUE LA API REDIRIGE (vimos en controller.js que usa res.redirect), 
-  // EL PROBLEMA ES QUE EL BACKEND DEVUELVE EL JSON ANTES DE LA REDIRECCIÓN.
-  // PERO, si queremos que la interfaz gráfica se muestre, el enlace DEBE ir al FRONTEND.
-  
-  // Si el enlace va al FRONTEND, React recibe el token y hace un FETCH a la API para confirmarlo.
-  // Esta es la forma moderna de hacerlo en SPAs.
-  
-  // 🛑 Probemos con la CORRECCIÓN STANDARD para SPAs: El correo debe ir al FRONTEND.
-  // Esto forzará al componente <Confirm> a mostrarse y hacer el fetch a la API.
-  const urlConfirm = `${URL_FRONTEND}/confirmar/${token}`;
+  const urlConfirm = `${URL_BACKEND}/api/usuarios/confirmar/${token}`;
 
   const html = `
     <h1>Bienvenido a Vibe-U 🎓</h1>
