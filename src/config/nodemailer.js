@@ -1,9 +1,10 @@
-// src/config/nodemailer.js
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config();
 
 // 🔹 Verificar variables de entorno
+// NOTA IMPORTANTE: URL_BACKEND sólo se usa para el CORS y para la URL de la API (si fuera necesario),
+// pero la confirmación de correo DEBE usar URL_FRONTEND para dirigir al usuario a la interfaz.
 const { USER_EMAIL, USER_PASS, URL_BACKEND, URL_FRONTEND } = process.env;
 if (!USER_EMAIL || !USER_PASS || !URL_BACKEND || !URL_FRONTEND) {
   throw new Error("❌ Falta configurar alguna variable de entorno en .env");
@@ -72,7 +73,8 @@ const sendMail = async (to, subject, html) => {
 // 🟣 CORREO DE CONFIRMACIÓN (Registro)
 // ======================================================
 const sendMailToRegister = async (userMail, token) => {
-  const urlConfirm = `${URL_BACKEND}/api/usuarios/confirmar/${token}`;
+  // ✅ CORRECCIÓN: El enlace debe apuntar al FRONTEND para cargar la interfaz de React.
+  const urlConfirm = `${URL_FRONTEND}/confirmar/${token}`;
 
   const html = `
     <h1>Bienvenido a Vibe-U 🎓</h1>
