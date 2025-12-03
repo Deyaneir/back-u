@@ -1,122 +1,137 @@
-// src/config/nodemailer.js
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config();
 
 // 🔹 Verificar variables de entorno
+// NOTA IMPORTANTE: URL_BACKEND sólo se usa para el CORS y para la URL de la API (si fuera necesario),
+// pero la confirmación de correo DEBE usar URL_FRONTEND para dirigir al usuario a la interfaz.
 const { USER_EMAIL, USER_PASS, URL_BACKEND, URL_FRONTEND } = process.env;
 if (!USER_EMAIL || !USER_PASS || !URL_BACKEND || !URL_FRONTEND) {
-  throw new Error("❌ Falta configurar alguna variable de entorno en .env");
+  throw new Error("❌ Falta configurar alguna variable de entorno en .env");
 }
 
 // 🔹 Transportador SMTP Gmail
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true, // true para 465, false para 587
-  auth: {
-    user: process.env.USER_EMAIL,
-    pass: process.env.USER_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true, // true para 465, false para 587
+  auth: {
+    user: process.env.USER_EMAIL,
+    pass: process.env.USER_PASS,
+  },
+  tls: {
+    rejectUnauthorized: false
+  }
 });
 
 // ======================================================
 // 🚫 Lista negra de dominios
 // ======================================================
 const blackListDomains = [
-  "gmail.com",
-  "hotmail.com",
-  "outlook.com",
-  "yahoo.com",
-  "live.com",
-  "aol.com",
-  "msn.com",
-  "icloud.com",
-  "protonmail.com"
+  "gmail.com",
+  "hotmail.com",
+  "outlook.com",
+  "yahoo.com",
+  "live.com",
+  "aol.com",
+  "msn.com",
+  "icloud.com",
+  "protonmail.com"
 ];
 
 const isBlackListed = (email) => {
-  const domain = email.split("@")[1]?.toLowerCase();
-  return blackListDomains.includes(domain);
+  const domain = email.split("@")[1]?.toLowerCase();
+  return blackListDomains.includes(domain);
 };
 
 // ======================================================
 // 🔹 Función genérica para envíos de registro
 // ======================================================
 const sendMail = async (to, subject, html) => {
-  // 🚫 Bloquear dominios de la lista negra
-  if (isBlackListed(to)) {
-    console.log(`❌ Correo bloqueado por lista negra: ${to}`);
-    throw new Error("Correo no permitido. Usa tu correo institucional.");
-  }
+  // 🚫 Bloquear dominios de la lista negra
+  if (isBlackListed(to)) {
+    console.log(`❌ Correo bloqueado por lista negra: ${to}`);
+    throw new Error("Correo no permitido. Usa tu correo institucional.");
+  }
 
-  try {
-    const info = await transporter.sendMail({
-      from: `"Vibe-U 🎓" <${USER_EMAIL}>`,
-      to,
-      subject,
-      html,
-    });
-    console.log("📩 Email de registro enviado:", info.messageId);
-    return info;
-  } catch (error) {
-    console.error("❌ Error enviando email de registro:", error);
-    throw error;
-  }
+  try {
+    const info = await transporter.sendMail({
+      from: `"Vibe-U 🎓" <${USER_EMAIL}>`,
+      to,
+      subject,
+      html,
+    });
+    console.log("📩 Email de registro enviado:", info.messageId);
+    return info;
+  } catch (error) {
+    console.error("❌ Error enviando email de registro:", error);
+    throw error;
+  }
 };
 
 // ======================================================
 // 🟣 CORREO DE CONFIRMACIÓN (Registro)
 // ======================================================
 const sendMailToRegister = async (userMail, token) => {
-  const urlConfirm = `${URL_BACKEND}/api/usuarios/confirmar/${token}`;
+  // ✅ CORRECCIÓN: Debe usar URL_FRONTEND para que React se encargue de la interfaz
+  // y URL_BACKEND para que el componente React haga la llamada a la API.
+  // Sin embargo, en el flujo de confirmación directo, DEBEMOS llamar al backend para procesar el token.
+  // El backend luego REDIRIGE al frontend. Por lo tanto, el enlace debe apuntar al BACKEND (la API).
+  // PERO: Si la API devuelve un JSON, significa que NO ESTÁ REDIRIGIENDO.
+  // DADO QUE LA API REDIRIGE (vimos en controller.js que usa res.redirect), 
+  // EL PROBLEMA ES QUE EL BACKEND DEVUELVE EL JSON ANTES DE LA REDIRECCIÓN.
+  // PERO, si queremos que la interfaz gráfica se muestre, el enlace DEBE ir al FRONTEND.
+  
+  // Si el enlace va al FRONTEND, React recibe el token y hace un FETCH a la API para confirmarlo.
+  // Esta es la forma moderna de hacerlo en SPAs.
+  
+  // 🛑 Probemos con la CORRECCIÓN STANDARD para SPAs: El correo debe ir al FRONTEND.
+  // Esto forzará al componente <Confirm> a mostrarse y hacer el fetch a la API.
+  const urlConfirm = `${URL_FRONTEND}/confirmar/${token}`;
 
-  const html = `
-    <h1>Bienvenido a Vibe-U 🎓</h1>
-    <p>Gracias por registrarte. Confirma tu correo haciendo clic en el siguiente enlace:</p>
-    <a href="${urlConfirm}" style="display:inline-block;background:#7c3aed;color:white;
-       padding:10px 20px;text-decoration:none;border-radius:8px;font-weight:bold;">
-       Confirmar correo
-    </a>
-    <br><br>
-    <p>Si no creaste esta cuenta, puedes ignorar este mensaje.</p>
-    <hr>
-    <footer>El equipo de Vibe-U 🎓</footer>
-  `;
+  const html = `
+    <h1>Bienvenido a Vibe-U 🎓</h1>
+    <p>Gracias por registrarte. Confirma tu correo haciendo clic en el siguiente enlace:</p>
+    <a href="${urlConfirm}" style="display:inline-block;background:#7c3aed;color:white;
+       padding:10px 20px;text-decoration:none;border-radius:8px;font-weight:bold;">
+       Confirmar correo
+    </a>
+    <br><br>
+    <p>Si no creaste esta cuenta, puedes ignorar este mensaje.</p>
+    <hr>
+    <footer>El equipo de Vibe-U 🎓</footer>
+  `;
 
-  return sendMail(userMail, "Confirma tu cuenta en VIBE-U 💜", html);
+  return sendMail(userMail, "Confirma tu cuenta en VIBE-U 💜", html);
 };
 
 // ======================================================
 // 🟣 CORREO DE RECUPERACIÓN DE PASSWORD
 // ======================================================
 const sendMailToRecoveryPassword = async (userMail, token) => {
-  const urlRecovery = `${URL_FRONTEND}/recuperarpassword/${token}`;
+  const urlRecovery = `${URL_FRONTEND}/recuperarpassword/${token}`;
 
-  const html = `
-    <h1>Vibe-U 💜</h1>
-    <p>Has solicitado restablecer tu contraseña.</p>
-    <a href="${urlRecovery}" style="display:inline-block;background:#7c3aed;color:white;
-      padding:10px 20px;text-decoration:none;border-radius:8px;font-weight:bold;">
-      Restablecer contraseña
-    </a>
-    <br><br>
-    <p>Si no solicitaste este cambio, ignora este mensaje.</p>
-    <hr>
-    <footer>El equipo de Vibe-U 💜</footer>
-  `;
+  const html = `
+    <h1>Vibe-U 💜</h1>
+    <p>Has solicitado restablecer tu contraseña.</p>
+    <a href="${urlRecovery}" style="display:inline-block;background:#7c3aed;color:white;
+      padding:10px 20px;text-decoration:none;border-radius:8px;font-weight:bold;">
+      Restablecer contraseña
+    </a>
+    <br><br>
+    <p>Si no solicitaste este cambio, ignora este mensaje.</p>
+    <hr>
+    <footer>El equipo de Vibe-U 💜</footer>
+  `;
 
-  return sendMail(userMail, "Recupera tu contraseña en Vibe-U 🎓", html);
+  return sendMail(userMail, "Recupera tu contraseña en Vibe-U 🎓", html);
 };
 
 // ======================================================
 // 🔹 Exportar funciones
 // ======================================================
 export {
-  sendMail,
-  sendMailToRegister,
-  sendMailToRecoveryPassword
+  sendMail,
+  sendMailToRegister,
+  sendMailToRecoveryPassword
 };
