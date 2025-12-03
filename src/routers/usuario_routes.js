@@ -1,4 +1,5 @@
 import express from "express";
+
 import {
     registro,
     confirmarMail,
@@ -29,19 +30,18 @@ router.post("/olvide-password", recuperarPassword);
 router.get("/olvide-password/:token", comprobarTokenPassword);
 router.post("/reset-password/:token", crearNuevoPassword);
 
-// 🔵 Perfil protegido
+// 🔵 Perfil protegido (IMPORTANTE: ruta correcta para frontend)
 router.get("/perfil", verificarTokenJWT, perfil);
 
 // 🔵 Actualizar información
 router.put("/actualizar", verificarTokenJWT, actualizarUsuario);
-// 🔵 Actualizar contraseña
+
 // 🔵 Actualizar contraseña
 router.put("/actualizar/password", verificarTokenJWT, actualizarPassword);
-// =========================================================
 
-/* ---------------------------------------------------
-    🟣 FRASE MOTIVADORA
----------------------------------------------------- */
+// =========================================================
+// 🟣 Frase motivadora
+// =========================================================
 router.get("/frase", async (req, res) => {
     try {
         const response = await fetch("https://zenquotes.io/api/random");
@@ -52,4 +52,5 @@ router.get("/frase", async (req, res) => {
         res.status(500).json({ error: "No se pudo obtener la frase motivadora" });
     }
 });
+
 export default router;
