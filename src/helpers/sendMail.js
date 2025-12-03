@@ -1,74 +1,119 @@
-// config/nodemailer.js
-import nodemailer from "nodemailer";
-import dotenv from "dotenv";
-dotenv.config();
+import React, { useEffect, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import axios from 'axios';
+// Importamos los iconos de Heroicons (aunque no los estás usando en tu código actual, es buena práctica mantener la importación)
+// import { CheckCircleIcon, XCircleIcon, ClockIcon } from '@heroicons/react/24/outline';
 
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: process.env.USER_EMAIL,
-        pass: process.env.USER_PASS
-    }
-});
+// 🛑 CORRECCIÓN: Usamos una URL de placeholder genérica para evitar el error de "archivo no encontrado".
+const PLACEHOLDER_LOGO_URL = 'https://placehold.co/130x130/8a3dff/ffffff?text=Vibe+U';
 
-const sendMail = async (to, subject, html) => {
-    try {
-        const info = await transporter.sendMail({
-            from: '"Vibe-U 🎓" <noreply@vibeu.com>',
-            to,
-            subject,
-            html
-        });
-        console.log("📩 Email enviado:", info.messageId);
-    } catch (error) {
-        console.error("❌ Error enviando email:", error.message);
-    }
+export const Confirm = () => {
+  const { token } = useParams();
+  const [mensaje, setMensaje] = useState('');
+  const [cargando, setCargando] = useState(true);
+  const [fadeIn, setFadeIn] = useState(false);
+
+  useEffect(() => {
+    const confirmarCuenta = async () => {
+     // Se asume que VITE_BACKEND_URL está correctamente configurada en Vercel
+     const urlBackend = import.meta.env.VITE_BACKEND_URL;
+     // 🛑 LOG DE DIAGNÓSTICO CRÍTICO: Muestra la URL completa que se está llamando.
+     const urlAPI = `${urlBackend}/api/usuarios/confirmar/${token}`;
+     console.log("🟦 Llamando a la API de confirmación en:", urlAPI); // <<-- ¡LOG CRÍTICO!
+     
+      try {
+        const res = await axios.get(urlAPI);
+        setMensaje(res.data?.msg || "Cuenta confirmada ✅");
+      } catch (error) {
+        console.error("❌ Error de la API:", error.response || error);
+        // Si el estado es 404 o 500, puedes mostrar un mensaje más específico.
+        const errorMsg = error.response?.data?.msg || `Error ${error.response?.status || 'desconocido'}: Token inválido o ya confirmado`;
+        setMensaje(errorMsg);
+      } finally {
+        setCargando(false);
+        setTimeout(() => setFadeIn(true), 50); // activa animación
+      }
+    };
+    confirmarCuenta();
+  }, [token]);
+
+  const styles = {
+    container: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg,#ffb07c,#9f6bff)',
+      padding: '20px',
+      overflow: 'hidden',
+    },
+    card: {
+      background: 'white',
+      width: '400px',
+      padding: '50px 40px',
+      borderRadius: '20px',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+      textAlign: 'center',
+      position: 'relative',
+      opacity: fadeIn ? 1 : 0,
+      transform: fadeIn ? 'scale(1)' : 'scale(0.8)',
+      transition: 'opacity 0.8s ease, transform 0.8s ease',
+    },
+    image: {
+      width: '130px',
+      height: '130px',
+      borderRadius: '50%',
+      marginBottom: '25px',
+      border: '4px solid #8a3dff',
+      objectFit: 'cover',
+    },
+    mensaje: {
+      fontSize: '28px',
+      fontWeight: 'bold',
+      marginBottom: '20px',
+      color: '#333',
+    },
+    subMensaje: {
+      fontSize: '18px',
+      color: '#555',
+      marginBottom: '25px',
+    },
+    button: {
+      width: '100%',
+      padding: '15px',
+      background: '#8a3dff',
+      color: 'white',
+      fontSize: '18px',
+      fontWeight: 'bold',
+      border: 'none',
+      borderRadius: '12px',
+      cursor: 'pointer',
+      transition: '.3s',
+    },
+  };
+
+  if (cargando) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'linear-gradient(135deg,#ffb07c,#9f6bff)' }}>
+        <p style={{ fontSize: '28px', fontWeight: 'bold', color: 'white' }}>Verificando tu cuenta...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={styles.container}>
+      <div style={styles.card}>
+        {/* Usamos la URL de placeholder en lugar de la importación fallida */}
+        <img src={PLACEHOLDER_LOGO_URL} alt="Logo Vibe-U" style={styles.image} />
+        <p style={styles.mensaje}>{mensaje}</p>
+        <p style={styles.subMensaje}>
+            {mensaje.includes('confirmada') ? 'Ya puedes iniciar sesión' : 'Por favor, verifica el enlace o intenta registrarte de nuevo.'}
+        </p>
+        <Link to="/login">
+          <button style={styles.button}>Ir al Login</button>
+        </Link>
+      </div>
+      {/* Mantenemos el log para que puedas verlo en la consola de Vercel (si está configurado) */}
+    </div>
+  );
 };
-
-// ------------------------------------------------------
-// 🟣 CONFIRMAR CORREO (SIN MODIFICAR TU ESTILO)
-// ------------------------------------------------------
-export const sendMailToRegister = async (userMail, token) => {
-    const urlConfirm = `${process.env.URL_BACKEND}/api/usuarios/confirmar/${token}`;
-
-    const html = `
-        <h1>Bienvenido a Vibe-U 🎓</h1>
-        <p>Gracias por registrarte. Confirma tu correo haciendo clic en el siguiente enlace:</p>
-
-        <a href="${urlConfirm}" style="background:#7c3aed;color:white;
-           padding:10px 20px;text-decoration:none;border-radius:8px;font-weight:bold;">
-           Confirmar correo
-        </a>
-
-        <br/><br/>
-        <p>Si tú no creaste esta cuenta, puedes ignorar este mensaje.</p>
-    `;
-
-    await sendMail(userMail, "Confirma tu cuenta en VIBE-U 💜", html);
-};
-
-// ------------------------------------------------------
-// 🟣 RECUPERAR CONTRASEÑA (AUMENTADO, NO MODIFICADO)
-// ------------------------------------------------------
-export const sendMailToRecoveryPassword = async (userMail, token) => {
-    const urlRecovery = `${process.env.URL_FRONTEND}/recuperarpassword/${token}`;
-
-    const html = `
-        <h1>Vibe-U 💜</h1>
-        <p>Hemos recibido una solicitud para restablecer tu contraseña.</p>
-
-        <p>Haz clic en el siguiente botón para continuar:</p>
-
-        <a href="${urlRecovery}" style="background:#7c3aed;color:white;
-           padding:10px 20px;text-decoration:none;border-radius:8px;font-weight:bold;">
-           Restablecer contraseña
-        </a>
-
-        <br/><br/>
-        <p>Si tú no solicitaste este cambio, simplemente ignora este mensaje.</p>
-    `;
-
-    await sendMail(userMail, "Restablece tu contraseña 🔒", html);
-};
-
-export default sendMail;
