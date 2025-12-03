@@ -12,7 +12,7 @@ const verificarTokenJWT = async (req, res, next) => {
     try {
         const token = authorization.split(" ")[1];
 
-        const { _id } = jwt.verify(token, process.env.JWT_SECRET);
+        const { id } = jwt.verify(token, process.env.JWT_SECRET);
 
         const usuarioBDD = await Usuario.findById(id)
             .lean()
