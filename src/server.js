@@ -13,10 +13,12 @@ const app = express();
 // ✅ CORS CORREGIDO PARA KOYEB + VERCEL
 // ================================
 const allowedOrigins = [
-  process.env.URL_FRONTEND,          // PRODUCCIÓN
-  "http://localhost:5173",
-  "http://127.0.0.1:5173"
+  process.env.URL_FRONTEND,           // tu frontend real (Vercel)
+  "https://diverse-janeta-epn-a654e5e7.koyeb.app",  // 🟩 tu backend
+  "http://localhost:5173",
+  "http://127.0.0.1:5173"
 ];
+
 
 app.use(cors({
   origin: (origin, callback) => {
