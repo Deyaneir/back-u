@@ -74,7 +74,7 @@ const sendMail = async (to, subject, html) => {
 // ======================================================
 const sendMailToRegister = async (userMail, token) => {
   // ✅ CORRECCIÓN: El enlace debe apuntar al FRONTEND para cargar la interfaz de React.
-  const urlConfirm = `${URL_FRONTEND}/api/confirm/${token}`;
+  const urlConfirm = `${URL_FRONTEND}/confirmar/${token}`;
 
   const html = `
     <h1>Bienvenido a Vibe-U 🎓</h1>
