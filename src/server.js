@@ -38,9 +38,12 @@ app.use(cors({
   credentials: true
 }));
 
-// Preflight
-app.options('/*', handler);  // ✅ ruta comodín válida
-
+// ================================
+// Preflight para CORS
+// ================================
+app.options('/*', (req, res) => {
+  res.sendStatus(200);
+});
 
 // ================================
 // Middlewares
