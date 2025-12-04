@@ -1,4 +1,4 @@
-// app.js (Servidor corregido)
+// app.js (Servidor corregido para Koyeb)
 
 import express from "express";
 import cors from "cors";
@@ -12,46 +12,42 @@ dotenv.config();
 const app = express();
 
 // ================================
-// ✅ CORS CORREGIDO (Koyeb + Vercel + Local)
+// ✅ CORS: permite frontend local y producción
 // ================================
 const allowedOrigins = [
-  process.env.URL_FRONTEND, 
-  "https://fronetd-u.vercel.app",  // ⬅ TU FRONTEND REAL
+  process.env.URL_FRONTEND, // producción
   "http://localhost:5173",
   "http://127.0.0.1:5173"
 ];
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-
-    const cleanOrigin = origin.replace(/\/$/, ""); // quita / final
-
-    if (allowedOrigins.includes(cleanOrigin)) {
-      return callback(null, true);
-    }
-
-    return callback(new Error("⛔ CORS bloqueado por origen: " + cleanOrigin));
+    if (!origin) return callback(null, true); // Postman o requests sin origin
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error("⛔ CORS bloqueado por origen: " + origin));
   },
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
 
 // ================================
-// Preflight para CORS
+// ✅ Middleware para preflight CORS
 // ================================
-app.options('/*', (req, res) => {
-  res.sendStatus(200);
+app.use((req, res, next) => {
+  if (req.method === "OPTIONS") {
+    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,PATCH,OPTIONS");
+    res.sendStatus(200);
+  } else {
+    next();
+  }
 });
 
 // ================================
-// Middlewares
+// ✅ Middlewares
 // ================================
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json({ limit: "10mb" })); // para subir imágenes grandes
 
 // ================================
-// Cloudinary
+// ✅ Cloudinary
 // ================================
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -60,14 +56,14 @@ cloudinary.config({
 });
 
 // ================================
-// MongoDB
+// ✅ Conexión a MongoDB
 // ================================
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB conectado"))
-  .catch(err => console.error("❌ Error MongoDB:", err));
+  .catch(err => console.error("❌ Error en MongoDB:", err));
 
 // ================================
-// Rutas
+// ✅ Rutas
 // ================================
 app.get("/", (req, res) => res.send("🚀 Backend funcionando"));
 app.use("/api/usuarios", usuarioRouter);
@@ -78,11 +74,11 @@ app.use("/api/usuarios", usuarioRouter);
 app.use((req, res) => res.status(404).json({ msg: "404 | Endpoint no encontrado" }));
 
 // ================================
-// Servidor
+// ✅ Servidor
 // ================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🔥 Servidor corriendo en 0.0.0.0:${PORT}`);
+  console.log(`🔥 Servidor corriendo en http://localhost:${PORT}`);
 });
 
 export default app;
