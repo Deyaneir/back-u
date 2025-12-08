@@ -1,5 +1,4 @@
-// app.js (Servidor listo para Koyeb + frontend en Vercel)
-
+// app.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -15,8 +14,7 @@ const app = express();
 // ✅ CORS: permite frontend local y producción
 // ================================
 const allowedOrigins = [
-  process.env.URL_FRONTEND,       // tu URL de producción (Vercel)
-  "https://fronetd-u.vercel.app", // frontend en producción específico
+  process.env.URL_FRONTEND, // producción (ej: Vercel)
   "http://localhost:5173",
   "http://127.0.0.1:5173"
 ];
@@ -25,16 +23,15 @@ app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true); // Postman o requests sin origin
     if (allowedOrigins.includes(origin)) return callback(null, true);
-    callback(null, false); // rechazamos otros orígenes sin romper preflight
+    // 🔹 en producción puedes poner solo true para probar
+    return callback(new Error("⛔ CORS bloqueado por origen: " + origin));
   },
   credentials: true,
   methods: ["GET","POST","PUT","DELETE","PATCH","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization"]
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// ================================
-// ✅ Middleware para preflight OPTIONS
-// ================================
+// Middleware para OPTIONS (preflight)
 app.options("*", cors());
 
 // ================================
