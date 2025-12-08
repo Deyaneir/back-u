@@ -1,3 +1,5 @@
+// app.js (Servidor listo para Koyeb + frontend en Vercel)
+
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -13,31 +15,32 @@ const app = express();
 // ✅ CORS: permite frontend local y producción
 // ================================
 const allowedOrigins = [
-  "https://fronetd-u.vercel.app", // producción
+  process.env.URL_FRONTEND,       // tu URL de producción (Vercel)
+  "https://fronetd-u.vercel.app", // frontend en producción específico
   "http://localhost:5173",
   "http://127.0.0.1:5173"
 ];
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // requests sin origin (Postman, etc.)
+    if (!origin) return callback(null, true); // Postman o requests sin origin
     if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(null, false); // bloquea otros orígenes
+    callback(null, false); // rechazamos otros orígenes sin romper preflight
   },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  methods: ["GET","POST","PUT","DELETE","PATCH","OPTIONS"],
+  allowedHeaders: ["Content-Type","Authorization"]
 }));
 
 // ================================
-// ✅ Middleware para preflight
+// ✅ Middleware para preflight OPTIONS
 // ================================
 app.options("*", cors());
 
 // ================================
 // ✅ Middlewares
 // ================================
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json({ limit: "10mb" })); // para subir imágenes grandes
 
 // ================================
 // ✅ Cloudinary
