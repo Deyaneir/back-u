@@ -1,4 +1,4 @@
-// app.js
+// src/app.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -14,7 +14,8 @@ const app = express();
 // ✅ CORS: permite frontend local y producción
 // ================================
 const allowedOrigins = [
-  process.env.URL_FRONTEND, // producción (ej: Vercel)
+  process.env.URL_FRONTEND, // producción (Vercel)
+  "https://fronetd-u.vercel.app",
   "http://localhost:5173",
   "http://127.0.0.1:5173"
 ];
@@ -30,10 +31,13 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
+// Middleware para OPTIONS (preflight)
+app.options("*", cors());
+
 // ================================
 // ✅ Middlewares
 // ================================
-app.use(express.json({ limit: "10mb" })); // para subir imágenes grandes
+app.use(express.json({ limit: "10mb" }));
 
 // ================================
 // ✅ Cloudinary
@@ -55,7 +59,7 @@ mongoose.connect(process.env.MONGO_URI)
 // ✅ Rutas
 // ================================
 app.get("/", (req, res) => res.send("🚀 Backend funcionando"));
-app.use("/api/usuarios", usuarioRouter);
+app.use("/api/usuarios", usuarioRouter); // Todas las rutas de usuario
 
 // ================================
 // 404
