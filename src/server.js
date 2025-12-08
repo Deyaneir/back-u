@@ -14,14 +14,14 @@ const app = express();
 // ✅ CORS: permite frontend local y producción
 // ================================
 const allowedOrigins = [
-  process.env.URL_FRONTEND, // producción
+  process.env.URL_FRONTEND, // producción (ej: Vercel)
   "http://localhost:5173",
   "http://127.0.0.1:5173"
 ];
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
+    if (!origin) return callback(null, true); // Postman o requests sin origin
     if (allowedOrigins.includes(origin)) return callback(null, true);
     return callback(new Error("⛔ CORS bloqueado por origen: " + origin));
   },
@@ -30,12 +30,10 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-app.options("*", cors());
-
 // ================================
 // ✅ Middlewares
 // ================================
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json({ limit: "10mb" })); // para subir imágenes grandes
 
 // ================================
 // ✅ Cloudinary
@@ -69,8 +67,7 @@ app.use((req, res) => res.status(404).json({ msg: "404 | Endpoint no encontrado"
 // ================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🔥 Servidor corriendo en el puerto ${PORT}`);
+  console.log(`🔥 Servidor corriendo en http://localhost:${PORT}`);
 });
-
 
 export default app;
