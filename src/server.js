@@ -3,10 +3,15 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import path from "path";
+import { fileURLToPath } from "url";
 import usuarioRouter from "./routers/usuario_routes.js";
 import { v2 as cloudinary } from "cloudinary";
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -14,8 +19,7 @@ const app = express();
 // ✅ CORS: permite frontend local y producción
 // ================================
 const allowedOrigins = [
-  process.env.URL_FRONTEND, // producción (Vercel)
-  "https://fronetd-u.vercel.app",
+  process.env.URL_FRONTEND, // producción (Vercel o Koyeb)
   "http://localhost:5173",
   "http://127.0.0.1:5173"
 ];
@@ -31,12 +35,16 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// Middleware para OPTIONS (preflight)
-
 // ================================
-// ✅ Middlewares
+// ✅ Middleware JSON y logging
 // ================================
 app.use(express.json({ limit: "10mb" }));
+
+// Middleware básico de logging (opcional)
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+  next();
+});
 
 // ================================
 // ✅ Cloudinary
@@ -55,15 +63,31 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.error("❌ Error en MongoDB:", err));
 
 // ================================
-// ✅ Rutas
+// ✅ Rutas API
 // ================================
 app.get("/", (req, res) => res.send("🚀 Backend funcionando"));
-app.use("/api/usuarios", usuarioRouter); // Todas las rutas de usuario
+app.use("/api/usuarios", usuarioRouter);
 
 // ================================
-// 404
+// ✅ Servir frontend estático (SPA) en producción
 // ================================
-app.use((req, res) => res.status(404).json({ msg: "404 | Endpoint no encontrado" }));
+const buildPath = path.join(__dirname, "../frontend/dist"); // ajusta según tu carpeta build
+app.use(express.static(buildPath));
+
+// Fallback para SPA (evita 404 al recargar)
+app.get("*", (req, res) => {
+  res.sendFile(path.join(buildPath, "index.html"));
+});
+
+// ================================
+// ✅ 404 para APIs que no existan
+// ================================
+app.use((req, res, next) => {
+  if (req.originalUrl.startsWith("/api")) {
+    return res.status(404).json({ msg: "404 | Endpoint no encontrado" });
+  }
+  next();
+});
 
 // ================================
 // ✅ Servidor
