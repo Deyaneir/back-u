@@ -19,7 +19,7 @@ const app = express();
 // ✅ CORS: permite frontend local y producción
 // ================================
 const allowedOrigins = [
-  process.env.URL_FRONTEND, // producción
+  "https://vu-chi.vercel.app", // producción
   "http://localhost:5173",
   "http://127.0.0.1:5173"
 ];
@@ -28,12 +28,24 @@ app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true); // Postman o requests sin origin
     if (allowedOrigins.includes(origin)) return callback(null, true);
+    console.log("⛔ CORS bloqueado por origen:", origin);
     return callback(new Error("⛔ CORS bloqueado por origen: " + origin));
   },
   credentials: true,
   methods: ["GET","POST","PUT","DELETE","PATCH","OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+// ================================
+// ✅ Manejar preflight OPTIONS
+// ================================
+app.options("*", cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ["GET","POST","PUT","DELETE","PATCH","OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 
 // ================================
 // ✅ Middleware JSON y logging
