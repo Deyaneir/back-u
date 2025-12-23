@@ -3,27 +3,26 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const {
-  BREVO_SMTP_LOGIN,
   BREVO_SMTP_KEY,
   SENDER_EMAIL,
   URL_BACKEND,
   URL_FRONTEND
 } = process.env;
 
-if (!BREVO_SMTP_LOGIN || !BREVO_SMTP_KEY || !SENDER_EMAIL || !URL_BACKEND || !URL_FRONTEND) {
+if (!BREVO_SMTP_KEY || !SENDER_EMAIL || !URL_BACKEND || !URL_FRONTEND) {
   throw new Error("❌ Falta configurar variables de entorno");
 }
 
-// 🔹 Transportador SMTP BREVO
 const transporter = nodemailer.createTransport({
   host: "smtp-relay.brevo.com",
   port: 587,
-  secure: false, // SIEMPRE false con 587
+  secure: false,
   auth: {
-    user: BREVO_SMTP_LOGIN,
-    pass: BREVO_SMTP_KEY
+    user: "apikey",              // ✅ FIJO
+    pass: BREVO_SMTP_KEY          // ✅ SMTP key value
   }
 });
+
 
 
 // ======================================================
