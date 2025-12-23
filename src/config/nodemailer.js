@@ -2,27 +2,29 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config();
 
-// 🔹 Verificar variables de entorno
-// NOTA IMPORTANTE: URL_BACKEND sólo se usa para el CORS y para la URL de la API (si fuera necesario),
-// pero la confirmación de correo DEBE usar URL_FRONTEND para dirigir al usuario a la interfaz.
-const { USER_EMAIL, USER_PASS, URL_BACKEND, URL_FRONTEND } = process.env;
-if (!USER_EMAIL || !USER_PASS || !URL_BACKEND || !URL_FRONTEND) {
-  throw new Error("❌ Falta configurar alguna variable de entorno en .env");
+const {
+  BREVO_SMTP_LOGIN,
+  BREVO_SMTP_KEY,
+  SENDER_EMAIL,
+  URL_BACKEND,
+  URL_FRONTEND
+} = process.env;
+
+if (!BREVO_SMTP_LOGIN || !BREVO_SMTP_KEY || !SENDER_EMAIL || !URL_BACKEND || !URL_FRONTEND) {
+  throw new Error("❌ Falta configurar variables de entorno");
 }
 
-// 🔹 Transportador SMTP Gmail
+// 🔹 Transportador SMTP BREVO
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true, // true para 465, false para 587
-  auth: {
-    user: process.env.USER_EMAIL,
-    pass: process.env.USER_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
+  host: "smtp-relay.brevo.com",
+  port: 587,
+  secure: false, // SIEMPRE false con 587
+  auth: {
+    user: BREVO_SMTP_LOGIN,
+    pass: BREVO_SMTP_KEY
+  }
 });
+
 
 // ======================================================
 // 🚫 Lista negra de dominios
