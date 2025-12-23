@@ -58,7 +58,7 @@ const sendMail = async (to, subject, html) => {
 
   try {
     const info = await transporter.sendMail({
-      from: `"Vibe-U 🎓" <${USER_EMAIL}>`,
+      from: `"Vibe-U 🎓" <${SENDER_EMAIL}>`,
       to,
       subject,
       html,
