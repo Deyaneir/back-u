@@ -24,6 +24,7 @@ const allowedOrigins = [
   "http://127.0.0.1:5173"
 ];
 
+// Middleware CORS global
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true); // Postman o requests sin origin
@@ -37,22 +38,20 @@ app.use(cors({
 }));
 
 // ================================
-// ✅ Manejar preflight OPTIONS
+// ✅ Manejar preflight OPTIONS global
 // ================================
-app.options("/*", cors({
+app.options("*", cors({
   origin: allowedOrigins,
   credentials: true,
   methods: ["GET","POST","PUT","DELETE","PATCH","OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-
 // ================================
 // ✅ Middleware JSON y logging
 // ================================
 app.use(express.json({ limit: "10mb" }));
 
-// Logging de peticiones (opcional)
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
   next();
@@ -86,19 +85,13 @@ app.use("/api/usuarios", usuarioRouter);
 const buildPath = path.join(__dirname, "../frontend/dist"); // ajusta según tu carpeta build
 app.use(express.static(buildPath));
 
-// Fallback SPA (evita 404 al recargar)
-app.use((req, res, next) => {
+// Fallback SPA: evita 404 al recargar en frontend
+app.get("*", (req, res) => {
   if (!req.originalUrl.startsWith("/api")) {
-    return res.sendFile(path.join(buildPath, "index.html"));
+    res.sendFile(path.join(buildPath, "index.html"));
+  } else {
+    res.status(404).json({ msg: "404 | Endpoint no encontrado" });
   }
-  next();
-});
-
-// ================================
-// ✅ 404 solo para APIs
-// ================================
-app.use("/api", (req, res) => {
-  res.status(404).json({ msg: "404 | Endpoint no encontrado" });
 });
 
 // ================================
