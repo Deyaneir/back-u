@@ -1,17 +1,11 @@
-// src/app.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import path from "path";
-import { fileURLToPath } from "url";
 import usuarioRouter from "./routers/usuario_routes.js";
 import { v2 as cloudinary } from "cloudinary";
 
 dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -19,7 +13,7 @@ const app = express();
 // ✅ CORS: permite frontend local y producción
 // ================================
 const allowedOrigins = [
-  process.env.URL_FRONTEND || "https://vu-chi.vercel.app",
+  process.env.URL_FRONTEND, // producción https://vibe-u-8gip.onrender.com
   "http://localhost:5173",
   "http://127.0.0.1:5173"
 ];
@@ -28,36 +22,18 @@ app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true); // Postman o requests sin origin
     if (allowedOrigins.includes(origin)) return callback(null, true);
-    console.log("⛔ CORS bloqueado por origen:", origin);
-    return callback(new Error("⛔ CORS bloqueado por origen: " + origin));
+    return callback(new Error("CORS bloqueado por origen: " + origin));
   },
-  credentials: true,
-  methods: ["GET","POST","PUT","DELETE","PATCH","OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  credentials: true
 }));
 
 // ================================
-// ✅ Manejar preflight OPTIONS solo para API
+// ✅ Middlewares
 // ================================
-app.options("/api/*", cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ["GET","POST","PUT","DELETE","PATCH","OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
+app.use(express.json({ limit: "10mb" })); // para subir imágenes grandes
 
 // ================================
-// ✅ Middleware JSON y logging
-// ================================
-app.use(express.json({ limit: "10mb" }));
-
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
-  next();
-});
-
-// ================================
-// ✅ Configuración Cloudinary
+// ✅ Cloudinary
 // ================================
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -73,31 +49,15 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.error("❌ Error en MongoDB:", err));
 
 // ================================
-// ✅ Rutas API
+// ✅ Rutas
 // ================================
-app.get("/api", (req, res) => res.send("🚀 Backend funcionando"));
+app.get("/", (req, res) => res.send("🚀 Backend funcionando"));
 app.use("/api/usuarios", usuarioRouter);
 
 // ================================
-// ✅ Servir frontend estático (SPA)
+// 404
 // ================================
-const buildPath = path.join(__dirname, "../frontend/dist"); 
-app.use(express.static(buildPath));
-
-// Fallback SPA: evita 404 al recargar
-app.get("*", (req, res, next) => {
-  if (!req.originalUrl.startsWith("/api")) {
-    return res.sendFile(path.join(buildPath, "index.html"));
-  }
-  next();
-});
-
-// ================================
-// ✅ 404 solo para APIs
-// ================================
-app.use("/api", (req, res) => {
-  res.status(404).json({ msg: "404 | Endpoint no encontrado" });
-});
+app.use((req, res) => res.status(404).json({ msg: "404 | Endpoint no encontrado" }));
 
 // ================================
 // ✅ Servidor
