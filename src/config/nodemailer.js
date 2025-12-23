@@ -18,18 +18,11 @@ const transporter = nodemailer.createTransport({
   port: 587,
   secure: false,
   auth: {
-    user: "apikey",
+    user: process.env.BREVO_SMTP_LOGIN,
     pass: process.env.BREVO_SMTP_KEY
   }
 });
 
-transporter.verify((err) => {
-  if (err) {
-    console.error("❌ SMTP ERROR:", err);
-  } else {
-    console.log("✅ SMTP BREVO FUNCIONANDO");
-  }
-});
 
 // ======================================================
 // 🚫 Lista negra de dominios
