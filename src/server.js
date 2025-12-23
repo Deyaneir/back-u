@@ -19,12 +19,11 @@ const app = express();
 // ✅ CORS: permite frontend local y producción
 // ================================
 const allowedOrigins = [
-  "https://vu-chi.vercel.app", // producción
+  process.env.URL_FRONTEND || "https://vu-chi.vercel.app",
   "http://localhost:5173",
   "http://127.0.0.1:5173"
 ];
 
-// Middleware CORS global
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true); // Postman o requests sin origin
@@ -38,9 +37,9 @@ app.use(cors({
 }));
 
 // ================================
-// ✅ Manejar preflight OPTIONS global
+// ✅ Manejar preflight OPTIONS solo para API
 // ================================
-app.options("*", cors({
+app.options("/api/*", cors({
   origin: allowedOrigins,
   credentials: true,
   methods: ["GET","POST","PUT","DELETE","PATCH","OPTIONS"],
@@ -58,7 +57,7 @@ app.use((req, res, next) => {
 });
 
 // ================================
-// ✅ Cloudinary
+// ✅ Configuración Cloudinary
 // ================================
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -82,16 +81,22 @@ app.use("/api/usuarios", usuarioRouter);
 // ================================
 // ✅ Servir frontend estático (SPA)
 // ================================
-const buildPath = path.join(__dirname, "../frontend/dist"); // ajusta según tu carpeta build
+const buildPath = path.join(__dirname, "../frontend/dist"); 
 app.use(express.static(buildPath));
 
-// Fallback SPA: evita 404 al recargar en frontend
-app.get("*", (req, res) => {
+// Fallback SPA: evita 404 al recargar
+app.get("*", (req, res, next) => {
   if (!req.originalUrl.startsWith("/api")) {
-    res.sendFile(path.join(buildPath, "index.html"));
-  } else {
-    res.status(404).json({ msg: "404 | Endpoint no encontrado" });
+    return res.sendFile(path.join(buildPath, "index.html"));
   }
+  next();
+});
+
+// ================================
+// ✅ 404 solo para APIs
+// ================================
+app.use("/api", (req, res) => {
+  res.status(404).json({ msg: "404 | Endpoint no encontrado" });
 });
 
 // ================================
