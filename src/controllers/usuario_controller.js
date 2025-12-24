@@ -1,18 +1,7 @@
-// ./controllers/usuario_controller.js
-
 import Usuario from "../models/Usuario.js";
 import { sendMailToRegister, sendMailToRecoveryPassword } from "../config/nodemailer.js";
-import fs from "fs";
-import { v2 as cloudinary } from "cloudinary";
-import dotenv from "dotenv";
-dotenv.config();
-
-// Configuración Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
+import cloudinary from "../config/cloudinary.js"; // tu configuración de Cloudinary
+import axios from "axios";
 
 // =========================================================
 // 🔵 REGISTRO
@@ -63,7 +52,6 @@ const confirmarMail = async (req, res) => {
     await usuarioBDD.save();
 
     return res.redirect(`${process.env.URL_FRONTEND}/confirmar/exito`);
-
   } catch {
     return res.redirect(`${process.env.URL_FRONTEND}/confirmar/error`);
   }
@@ -221,40 +209,23 @@ const actualizarUsuario = async (req, res) => {
 };
 
 // =========================================================
-// 🆕 🔵 ACTUALIZAR SOLO AVATAR (Cloudinary)
+// 🔵 ACTUALIZAR AVATAR
 // =========================================================
 const actualizarAvatar = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ msg: "No se recibió ningún archivo" });
-    }
+    const { avatar } = req.body;
 
-    // Busca el usuario
+    if (!avatar) return res.status(400).json({ msg: "Avatar no recibido" });
+
     const usuarioBDD = await Usuario.findById(req.usuario._id);
     if (!usuarioBDD) return res.status(404).json({ msg: "Usuario no encontrado" });
 
-    const userName = usuarioBDD.nombre || "usuario";
-
-    // Subida a Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: `usuarios/${userName}`,
-      overwrite: true,
-    });
-
-    // Elimina archivo temporal
-    fs.unlinkSync(req.file.path);
-
-    // Guarda la URL en BD
-    usuarioBDD.avatar = result.secure_url;
+    usuarioBDD.avatar = avatar;
     await usuarioBDD.save();
 
-    res.status(200).json({
-      msg: "Avatar actualizado correctamente",
-      avatar: result.secure_url
-    });
+    res.status(200).json({ msg: "Avatar actualizado correctamente", avatar });
 
   } catch (error) {
-    console.error("Error al actualizar avatar:", error);
     res.status(500).json({ msg: "Error al actualizar avatar" });
   }
 };
@@ -286,8 +257,10 @@ const actualizarPassword = async (req, res) => {
   }
 };
 
+
+
 // =========================================================
-// ✅ EXPORTAR
+// 🔵 EXPORTAR
 // =========================================================
 export {
   registro,
@@ -298,6 +271,6 @@ export {
   loginUsuario,
   perfil,
   actualizarUsuario,
-  actualizarAvatar, // ✅ Subida a Cloudinary
-  actualizarPassword
+  actualizarAvatar,
+  actualizarPassword,
 };
