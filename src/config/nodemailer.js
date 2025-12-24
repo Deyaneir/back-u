@@ -41,6 +41,18 @@ const isBlackListed = (email) => {
   const domain = email.split("@")[1]?.toLowerCase();
   return blackListDomains.includes(domain);
 };
+// Función para validar correos permitidos
+const isAllowedEmail = (email) => {
+  const domain = email.split("@")[1]?.toLowerCase();
+
+  // Permitir Gmail
+  if (domain === "gmail.com") return true;
+
+  // Permitir dominios educativos o institucionales
+  if (domain.endsWith(".edu") || domain.endsWith(".edu.ec") || domain.endsWith(".ac")) return true;
+
+  return false;
+};
 
 // ======================================================
 // 🔹 Función genérica para envíos de registro
