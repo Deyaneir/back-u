@@ -11,17 +11,19 @@ if (!USER_EMAIL || !USER_PASS || !URL_BACKEND || !URL_FRONTEND) {
 
 // 🔹 Transportador SMTP Gmail
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true, // true para 465, false para 587
+  host: "smtp.office365.com",  // servidor SMTP de Outlook/Hotmail
+  port: 587,                   // puerto TLS
+  secure: false,               // false para TLS
   auth: {
     user: process.env.USER_EMAIL,
-    pass: process.env.USER_PASS,
+    pass: process.env.USER_PASS, // contraseña de aplicación
   },
   tls: {
+    ciphers: "SSLv3",
     rejectUnauthorized: false
   }
 });
+
 
 // ======================================================
 // 🚫 Lista negra de dominios
