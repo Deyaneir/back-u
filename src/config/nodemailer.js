@@ -15,8 +15,8 @@ const transporter = nodemailer.createTransport({
   port: 465,
   secure: true, // true para 465, false para 587
   auth: {
-    user: process.env.USER_EMAIL,
-    pass: process.env.USER_PASS,
+    user: USER_EMAIL,
+    pass: USER_PASS,
   },
   tls: {
     rejectUnauthorized: false
@@ -24,24 +24,8 @@ const transporter = nodemailer.createTransport({
 });
 
 // ======================================================
-// 🚫 Lista negra de dominios
+// 🔹 Validación de correos permitidos
 // ======================================================
-const blackListDomains = [
-  "hotmail.com",
-  "outlook.com",
-  "yahoo.com",
-  "live.com",
-  "aol.com",
-  "msn.com",
-  "icloud.com",
-  "protonmail.com"
-];
-
-const isBlackListed = (email) => {
-  const domain = email.split("@")[1]?.toLowerCase();
-  return blackListDomains.includes(domain);
-};
-// Función para validar correos permitidos
 const isAllowedEmail = (email) => {
   const domain = email.split("@")[1]?.toLowerCase();
 
@@ -55,13 +39,13 @@ const isAllowedEmail = (email) => {
 };
 
 // ======================================================
-// 🔹 Función genérica para envíos de registro
+// 🔹 Función genérica para envíos de email
 // ======================================================
 const sendMail = async (to, subject, html) => {
-  // 🚫 Bloquear dominios de la lista negra
-  if (isBlackListed(to)) {
-    console.log(`❌ Correo bloqueado por lista negra: ${to}`);
-    throw new Error("Correo no permitido. Usa tu correo institucional.");
+  // Validar correo permitido
+  if (!isAllowedEmail(to)) {
+    console.log(`❌ Correo bloqueado: ${to}`);
+    throw new Error("Solo se permiten correos institucionales o Gmail.");
   }
 
   try {
@@ -71,10 +55,10 @@ const sendMail = async (to, subject, html) => {
       subject,
       html,
     });
-    console.log("📩 Email de registro enviado:", info.messageId);
+    console.log("📩 Email enviado:", info.messageId);
     return info;
   } catch (error) {
-    console.error("❌ Error enviando email de registro:", error);
+    console.error("❌ Error enviando email:", error);
     throw error;
   }
 };
