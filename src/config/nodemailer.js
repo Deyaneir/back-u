@@ -16,7 +16,7 @@ const transporter = nodemailer.createTransport({
   secure: true, // true para 465, false para 587
   auth: {
     user: USER_EMAIL,
-    pass: USER_PASS,
+    pass: USER_PASS, // contraseña de app si Gmail requiere
   },
   tls: {
     rejectUnauthorized: false
@@ -24,7 +24,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // ======================================================
-// 🔹 Validación de correos permitidos
+// 🔹 Función para validar correos permitidos
 // ======================================================
 const isAllowedEmail = (email) => {
   const domain = email.split("@")[1]?.toLowerCase();
@@ -42,9 +42,8 @@ const isAllowedEmail = (email) => {
 // 🔹 Función genérica para envíos de email
 // ======================================================
 const sendMail = async (to, subject, html) => {
-  // Validar correo permitido
   if (!isAllowedEmail(to)) {
-    console.log(`❌ Correo bloqueado: ${to}`);
+    console.log(`❌ Correo no permitido: ${to}`);
     throw new Error("Solo se permiten correos institucionales o Gmail.");
   }
 
@@ -55,8 +54,9 @@ const sendMail = async (to, subject, html) => {
       subject,
       html,
     });
+
     console.log("📩 Email enviado:", info.messageId);
-    return info;
+    return { success: true, messageId: info.messageId }; // ✅ Devuelve éxito al backend
   } catch (error) {
     console.error("❌ Error enviando email:", error);
     throw error;
