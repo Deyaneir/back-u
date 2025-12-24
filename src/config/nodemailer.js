@@ -1,31 +1,27 @@
 // src/config/nodemailer.js
 import nodemailer from "nodemailer";
-import { google } from "googleapis";
 import dotenv from "dotenv";
 dotenv.config();
 
-// 🔹 Variables de entorno necesarias
-const {
-  USER_EMAIL,
-  GMAIL_CLIENT_ID,
-  GMAIL_CLIENT_SECRET,
-  GMAIL_REFRESH_TOKEN,
-  URL_BACKEND,
-  URL_FRONTEND
-} = process.env;
-
-if (!USER_EMAIL || !GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET || !GMAIL_REFRESH_TOKEN || !URL_BACKEND || !URL_FRONTEND) {
+// 🔹 Verificar variables de entorno
+const { USER_EMAIL, USER_PASS, URL_BACKEND, URL_FRONTEND } = process.env;
+if (!USER_EMAIL || !USER_PASS || !URL_BACKEND || !URL_FRONTEND) {
   throw new Error("❌ Falta configurar alguna variable de entorno en .env");
 }
 
-// 🔹 Configurar OAuth2
-const oAuth2Client = new google.auth.OAuth2(
-  GMAIL_CLIENT_ID,
-  GMAIL_CLIENT_SECRET,
-  "https://vu-chi.vercel.app/api/usuarios/google/callback" // redirect URI
-);
-
-oAuth2Client.setCredentials({ refresh_token: GMAIL_REFRESH_TOKEN });
+// 🔹 Transportador SMTP Gmail
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true, // true para 465, false para 587
+  auth: {
+    user: process.env.USER_EMAIL,
+    pass: process.env.USER_PASS,
+  },
+  tls: {
+    rejectUnauthorized: false
+  }
+});
 
 // ======================================================
 // 🚫 Lista negra de dominios
@@ -48,49 +44,36 @@ const isBlackListed = (email) => {
 };
 
 // ======================================================
-// 🔹 Función genérica para enviar correos
+// 🔹 Función genérica para envíos de registro
 // ======================================================
 const sendMail = async (to, subject, html) => {
+  // 🚫 Bloquear dominios de la lista negra
   if (isBlackListed(to)) {
     console.log(`❌ Correo bloqueado por lista negra: ${to}`);
     throw new Error("Correo no permitido. Usa tu correo institucional.");
   }
 
   try {
-    const accessToken = await oAuth2Client.getAccessToken();
-
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        type: "OAuth2",
-        user: USER_EMAIL,
-        clientId: GMAIL_CLIENT_ID,
-        clientSecret: GMAIL_CLIENT_SECRET,
-        refreshToken: GMAIL_REFRESH_TOKEN,
-        accessToken: accessToken.token,
-      },
-    });
-
     const info = await transporter.sendMail({
       from: `"Vibe-U 🎓" <${USER_EMAIL}>`,
       to,
       subject,
       html,
     });
-
-    console.log("📩 Email enviado:", info.messageId);
+    console.log("📩 Email de registro enviado:", info.messageId);
     return info;
   } catch (error) {
-    console.error("❌ Error enviando email:", error);
+    console.error("❌ Error enviando email de registro:", error);
     throw error;
   }
 };
 
 // ======================================================
-// 🟣 Correo de confirmación de registro
+// 🟣 CORREO DE CONFIRMACIÓN (Registro)
 // ======================================================
 const sendMailToRegister = async (userMail, token) => {
   const urlConfirm = `${URL_BACKEND}/api/usuarios/confirmar/${token}`;
+
   const html = `
     <h1>Bienvenido a Vibe-U 🎓</h1>
     <p>Gracias por registrarte. Confirma tu correo haciendo clic en el siguiente enlace:</p>
@@ -108,10 +91,11 @@ const sendMailToRegister = async (userMail, token) => {
 };
 
 // ======================================================
-// 🟣 Correo de recuperación de contraseña
+// 🟣 CORREO DE RECUPERACIÓN DE PASSWORD
 // ======================================================
 const sendMailToRecoveryPassword = async (userMail, token) => {
   const urlRecovery = `${URL_FRONTEND}/recuperarpassword/${token}`;
+
   const html = `
     <h1>Vibe-U 💜</h1>
     <p>Has solicitado restablecer tu contraseña.</p>
