@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import { verificarTokenJWT } from "../middlewares/JWT.js";
 import { perfil, actualizarUsuario,actualizarPassword} 
 from "../controllers/usuario_controller.js";
+import fetch from "node-fetch";
 
 const router = express.Router();
 
@@ -209,6 +210,27 @@ router.post("/reset-password/:token", async (req, res) => {
     } catch (error) {
         console.error("ERROR EN RESET PASSWORD:", error);
         res.status(500).json({ msg: "Error del servidor" });
+    }
+});
+/* ---------------------------------------------------
+   🟣 FRASE MOTIVADORA
+---------------------------------------------------- */
+router.get("/frase", async (req, res) => {
+    try {
+        const response = await fetch("https://zenquotes.io/api/random");
+        const data = await response.json();
+
+        // Validación para no romper React si data está vacío
+        if (!data || !data[0]) {
+            return res.json({ q: "¡Sigue adelante!", a: "Sistema" });
+        }
+
+        // Devolver solo un objeto {q, a} para React
+        res.json({ q: data[0].q, a: data[0].a });
+
+    } catch (error) {
+        console.error("ERROR FRASE:", error);
+        res.status(500).json({ q: "¡Sigue adelante!", a: "Sistema" });
     }
 });
 
