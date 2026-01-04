@@ -1,69 +1,51 @@
-import express from "express";
-import Usuario from "../models/Usuario.js";
-import jwt from "jsonwebtoken";
-import { sendMailToRegister, sendMailToRecoveryPassword } from "../config/nodemailer.js";
+import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
-import { verificarTokenJWT } from "../middlewares/JWT.js";
-import { perfil, actualizarUsuario, actualizarPassword } from "../controllers/usuario_controller.js";
-import fetch from "node-fetch";
+import jwt from "jsonwebtoken";
 
-const router = express.Router();
+const usuarioSchema = new mongoose.Schema({
+  nombre: { type: String, required: true },
+  apellido: { type: String },
+  correoInstitucional: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  rol: { type: String, default: "estudiante" },
+  token: { type: String, default: null },
+  confirmEmail: { type: Boolean, default: false },
+  resetToken: { type: String, default: null },
+  resetTokenExpire: { type: Date, default: null },
+  avatar: { type: String, default: null },
 
-const BLACKLISTED_DOMAINS = [
-    "gmail.com", "hotmail.com", "outlook.com", "yahoo.com",
-    "aol.com", "live.com", "icloud.com", "mail.com"
-];
+  // NUEVOS CAMPOS
+  telefono: { type: String, default: "" },
+  direccion: { type: String, default: "" },
+  cedula: { type: String, default: "" },
+  descripcion: { type: String, default: "" },
+  universidad: { type: String, default: "" },
+  carrera: { type: String, default: "" }
+}, { timestamps: true });
 
-const domainCheck = (req, res, next) => {
-    const { correoInstitucional } = req.body;
-    if (correoInstitucional) {
-        const dominio = correoInstitucional.split("@")[1];
-        if (BLACKLISTED_DOMAINS.includes(dominio)) {
-            console.log(`❌ Correo rechazado por restricción: ${correoInstitucional}`);
-            return res.status(400).json({
-                msg: "Solo se permiten correos institucionales o académicos."
-            });
-        }
-    }
-    next();
+// 🔐 Encriptar contraseña
+usuarioSchema.methods.encryptPassword = async function(password) {
+  const salt = await bcrypt.genSalt(10);
+  return await bcrypt.hash(password, salt);
 };
 
-/* ------------------------------
-   REGISTRO, LOGIN, CONFIRM, PASSWORD
-   (igual que tu código)
-------------------------------- */
-router.post("/register", domainCheck, async (req, res) => { /* ... */ });
-router.get("/confirmar/:token", async (req, res) => { /* ... */ });
-router.post("/login", async (req, res) => { /* ... */ });
-router.post("/olvide-password", async (req, res) => { /* ... */ });
-router.post("/reset-password/:token", async (req, res) => { /* ... */ });
+// 🔍 Comparar contraseña
+usuarioSchema.methods.matchPassword = async function(password) {
+  return await bcrypt.compare(password, this.password);
+};
 
-/* ---------------------------------------------------
-   FRASE MOTIVADORA
----------------------------------------------------- */
-router.get("/frase", async (req, res) => {
-    try {
-        // ⚡ API externa
-        const response = await fetch("https://zenquotes.io/api/random");
-        if (!response.ok) throw new Error("No se pudo obtener la frase");
+// 🔑 JWT para login
+usuarioSchema.methods.createJWT = function() {
+  return jwt.sign(
+    { id: this._id, nombre: this.nombre, correo: this.correoInstitucional },
+    process.env.JWT_SECRET,
+    { expiresIn: "1d" }
+  );
+};
 
-        const data = await response.json();
+// 🔑 Token temporal
+usuarioSchema.methods.createToken = function() {
+  return jwt.sign({ id: this._id }, process.env.JWT_SECRET, { expiresIn: "15m" });
+};
 
-        // 💡 Aseguramos el formato
-        const frase = data[0]?.q || "¡Sigue adelante!";
-        const autor = data[0]?.a || "Desconocido";
-
-        res.json({ q: frase, a: autor });
-    } catch (error) {
-        console.error("ERROR FRASE:", error);
-
-        // 🔹 Fallback si falla la API externa
-        res.json({ q: "¡Nunca dejes de aprender!", a: "Sistema" });
-    }
-});
-
-router.get("/perfil", verificarTokenJWT, perfil);
-router.put("/actualizar-perfil", verificarTokenJWT, actualizarUsuario);
-router.put("/actualizar-password", verificarTokenJWT, actualizarPassword);
-
-export default router;
+export default mongoose.model("Usuario", usuarioSchema);
