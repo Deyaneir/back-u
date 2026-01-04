@@ -15,8 +15,8 @@ const transporter = nodemailer.createTransport({
   port: 465,
   secure: true, // true para 465, false para 587
   auth: {
-    user: USER_EMAIL,
-    pass: USER_PASS, // contraseña de app si Gmail requiere
+    user: process.env.USER_EMAIL,
+    pass: process.env.USER_PASS,
   },
   tls: {
     rejectUnauthorized: false
@@ -24,27 +24,33 @@ const transporter = nodemailer.createTransport({
 });
 
 // ======================================================
-// 🔹 Función para validar correos permitidos
+// 🚫 Lista negra de dominios
 // ======================================================
-const isAllowedEmail = (email) => {
+const blackListDomains = [
+  "gmail.com",
+  "hotmail.com",
+  "outlook.com",
+  "yahoo.com",
+  "live.com",
+  "aol.com",
+  "msn.com",
+  "icloud.com",
+  "protonmail.com"
+];
+
+const isBlackListed = (email) => {
   const domain = email.split("@")[1]?.toLowerCase();
-
-  // Permitir Gmail
-  if (domain === "gmail.com") return true;
-
-  // Permitir dominios educativos o institucionales
-  if (domain.endsWith(".edu") || domain.endsWith(".edu.ec") || domain.endsWith(".ac")) return true;
-
-  return false;
+  return blackListDomains.includes(domain);
 };
 
 // ======================================================
-// 🔹 Función genérica para envíos de email
+// 🔹 Función genérica para envíos de registro
 // ======================================================
 const sendMail = async (to, subject, html) => {
-  if (!isAllowedEmail(to)) {
-    console.log(`❌ Correo no permitido: ${to}`);
-    throw new Error("Solo se permiten correos institucionales o Gmail.");
+  // 🚫 Bloquear dominios de la lista negra
+  if (isBlackListed(to)) {
+    console.log(`❌ Correo bloqueado por lista negra: ${to}`);
+    throw new Error("Correo no permitido. Usa tu correo institucional.");
   }
 
   try {
@@ -54,11 +60,10 @@ const sendMail = async (to, subject, html) => {
       subject,
       html,
     });
-
-    console.log("📩 Email enviado:", info.messageId);
-    return { success: true, messageId: info.messageId }; // ✅ Devuelve éxito al backend
+    console.log("📩 Email de registro enviado:", info.messageId);
+    return info;
   } catch (error) {
-    console.error("❌ Error enviando email:", error);
+    console.error("❌ Error enviando email de registro:", error);
     throw error;
   }
 };
