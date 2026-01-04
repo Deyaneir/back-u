@@ -64,7 +64,9 @@ const sendMail = async (to, subject, html) => {
     return info;
   } catch (error) {
     console.error("❌ Error enviando email de registro:", error);
-    throw error;
+    console.error("MAIL ERROR:", error.message);
+    return null;
+
   }
 };
 
