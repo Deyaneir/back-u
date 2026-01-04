@@ -218,21 +218,23 @@ router.post("/reset-password/:token", async (req, res) => {
 router.get("/frase", async (req, res) => {
     try {
         const response = await fetch("https://zenquotes.io/api/random");
+        if (!response.ok) throw new Error("No se pudo obtener la frase");
+
         const data = await response.json();
 
-        // Validación para no romper React si data está vacío
-        if (!data || !data[0]) {
-            return res.json({ q: "¡Sigue adelante!", a: "Sistema" });
-        }
+        // ⚡ Comprobamos que data[0] exista
+        const frase = data[0]?.q || "¡Nunca dejes de rendirte!";
+        const autor = data[0]?.a || "Desconocido";
 
-        // Devolver solo un objeto {q, a} para React
-        res.json({ q: data[0].q, a: data[0].a });
-
+        res.json({ q: frase, a: autor });
     } catch (error) {
         console.error("ERROR FRASE:", error);
-        res.status(500).json({ q: "¡Sigue adelante!", a: "Sistema" });
+
+        // Fallback en caso de error
+        res.json({ q: "¡Nunca dejes de aprender!", a: "Sistema" });
     }
 });
+
 
 router.get("/perfil", verificarTokenJWT, perfil);
 router.put("/actualizar-perfil", verificarTokenJWT, actualizarUsuario);
