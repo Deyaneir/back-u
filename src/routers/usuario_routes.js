@@ -75,27 +75,27 @@ router.post("/register", domainCheck, async (req, res) => {
    🟣 CONFIRMAR CUENTA
 ---------------------------------------------------- */
 router.get("/confirmar/:token", async (req, res) => {
-    try {
-        const { token } = req.params;
+  try {
+    const { token } = req.params;
 
-        const usuario = await Usuario.findOne({ token });
-        if (!usuario) {
-    return res.redirect(`${process.env.URL_FRONTEND}/confirmar/error`);
-}
+    const usuario = await Usuario.findOne({ token });
 
-
-        usuario.token = null;
-        usuario.confirmEmail = true;
-        await usuario.save();
-
-        // 🔹 CAMBIO: Redirigir al frontend en lugar de devolver JSON
-        res.redirect(`${process.env.URL_FRONTEND}/confirmar/exito`);
-
-    } catch (error) {
-        console.error("ERROR EN CONFIRMAR:", error);
-        res.status(500).json({ msg: "Error del servidor", error: error.message });
+    if (!usuario) {
+      return res.status(400).json({ msg: "Token inválido o expirado" });
     }
+
+    usuario.token = null;
+    usuario.confirmEmail = true;
+    await usuario.save();
+
+    res.json({ msg: "Cuenta confirmada correctamente" });
+
+  } catch (error) {
+    console.error("ERROR EN CONFIRMAR:", error);
+    res.status(500).json({ msg: "Error del servidor" });
+  }
 });
+
 
 /* ---------------------------------------------------
    🟣 LOGIN
