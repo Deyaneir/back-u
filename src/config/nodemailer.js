@@ -96,7 +96,7 @@ const sendMailToRegister = async (userMail, token) => {
 // 🟣 CORREO DE RECUPERACIÓN DE PASSWORD
 // ======================================================
 const sendMailToRecoveryPassword = async (userMail, token) => {
-  const urlRecovery = `${URL_FRONTEND}/recuperarpassword/${token}`;
+  const urlRecovery = `${URL_FRONTEND}/#/recuperarpassword/${token}`;
 
   const html = `
     <h1>Vibe-U 💜</h1>
