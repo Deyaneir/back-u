@@ -1,7 +1,7 @@
-const Grupo = require('../models/Grupos');
+import Grupo from '../models/Grupos.js';
 
-// Listar todos los grupos
-exports.listarGrupos = async (req, res) => {
+// Listar grupos
+export const listarGrupos = async (req, res) => {
     try {
         const grupos = await Grupo.find().sort({ createdAt: -1 });
         res.json(grupos);
@@ -10,8 +10,8 @@ exports.listarGrupos = async (req, res) => {
     }
 };
 
-// Crear un nuevo grupo
-exports.crearGrupo = async (req, res) => {
+// Crear grupo
+export const crearGrupo = async (req, res) => {
     try {
         const nuevoGrupo = new Grupo(req.body);
         const grupoGuardado = await nuevoGrupo.save();
@@ -22,7 +22,7 @@ exports.crearGrupo = async (req, res) => {
 };
 
 // Unirse a un grupo
-exports.unirseGrupo = async (req, res) => {
+export const unirseGrupo = async (req, res) => {
     try {
         const { correo } = req.body;
         const grupo = await Grupo.findById(req.params.id);
@@ -37,7 +37,7 @@ exports.unirseGrupo = async (req, res) => {
 };
 
 // Abandonar grupo
-exports.abandonarGrupo = async (req, res) => {
+export const abandonarGrupo = async (req, res) => {
     try {
         const { correo } = req.body;
         const grupo = await Grupo.findById(req.params.id);
@@ -50,7 +50,7 @@ exports.abandonarGrupo = async (req, res) => {
 };
 
 // Eliminar grupo
-exports.eliminarGrupo = async (req, res) => {
+export const eliminarGrupo = async (req, res) => {
     try {
         await Grupo.findByIdAndDelete(req.params.id);
         res.json({ message: "Grupo eliminado" });
@@ -59,13 +59,13 @@ exports.eliminarGrupo = async (req, res) => {
     }
 };
 
-// Publicar un post en el muro del grupo
-exports.crearPost = async (req, res) => {
+// Publicar un post
+export const crearPost = async (req, res) => {
     try {
         const { autor, contenido, foto } = req.body;
         const grupo = await Grupo.findById(req.params.id);
         const nuevoPost = { autor, contenido, foto };
-        grupo.posts.unshift(nuevoPost); // Pone el post al inicio
+        grupo.posts.unshift(nuevoPost);
         await grupo.save();
         res.status(201).json(grupo.posts[0]);
     } catch (error) {
