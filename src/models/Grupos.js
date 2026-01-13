@@ -1,18 +1,20 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose'; // <-- Cambiado de require a import
 
 const PostSchema = new mongoose.Schema({
     autor: String,
     contenido: String,
-    foto: String, // Base64 o URL
+    foto: String, 
     fecha: { type: Date, default: Date.now }
 });
 
 const GrupoSchema = new mongoose.Schema({
     nombre: { type: String, required: true },
-    imagen: { type: String }, // Foto de portada/perfil
+    imagen: { type: String }, 
     creadorEmail: { type: String, required: true },
-    miembrosArray: { type: [String], default: [] }, // Lista de correos de miembros
+    miembrosArray: { type: [String], default: [] }, 
     posts: [PostSchema]
 }, { timestamps: true });
 
-module.exports = mongoose.model('Grupo', GrupoSchema);
+// ✅ Cambiado de module.exports a export default
+const Grupo = mongoose.model('Grupo', GrupoSchema);
+export default Grupo;
