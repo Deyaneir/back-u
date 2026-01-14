@@ -62,11 +62,22 @@ export const eliminarGrupo = async (req, res) => {
 // Publicar un post
 export const crearPost = async (req, res) => {
     try {
-        const { autor, contenido, foto } = req.body;
+        // AUMENTO: Capturamos 'autorFoto' del body
+        const { autor, autorFoto, contenido, foto } = req.body;
         const grupo = await Grupo.findById(req.params.id);
-        const nuevoPost = { autor, contenido, foto };
+        
+        // AUMENTO: Incluimos 'autorFoto' en el objeto para que coincida con tu Grupos.js
+        const nuevoPost = { 
+            autor, 
+            autorFoto, 
+            contenido, 
+            foto 
+        };
+        
         grupo.posts.unshift(nuevoPost);
         await grupo.save();
+        
+        // Retornamos el post recién creado
         res.status(201).json(grupo.posts[0]);
     } catch (error) {
         res.status(400).json({ message: "Error al publicar post" });
