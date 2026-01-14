@@ -58,7 +58,7 @@ const sendMail = async (to, subject, html) => {
 // 🟣 CORREO DE CONFIRMACIÓN
 // ==============================
 const sendMailToRegister = async (userMail, token) => {
-  const urlConfirm = `${URL_FRONTEND}/#/confirmar/${token}`;
+  const urlConfirm = `${URL_FRONTEND}/confirmar/${token}`;
 
   const html = `
     <h1>Bienvenido a Vibe-U 🎓</h1>
@@ -74,7 +74,7 @@ const sendMailToRegister = async (userMail, token) => {
 // 🟣 RECUPERACIÓN DE PASSWORD
 // ==============================
 const sendMailToRecoveryPassword = async (userMail, token) => {
-  const urlRecovery = `${URL_FRONTEND}/#/recuperarpassword/${token}`;
+  const urlRecovery = `${URL_FRONTEND}/recuperarpassword/${token}`;
 
   const html = `
     <h1>Vibe-U</h1>
