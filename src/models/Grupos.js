@@ -2,6 +2,7 @@ import mongoose from 'mongoose'; // <-- Cambiado de require a import
 
 const PostSchema = new mongoose.Schema({
     autor: String,
+    autorFoto: String, // <--- AUMENTO: Campo para guardar la foto del usuario que publica
     contenido: String,
     foto: String, 
     fecha: { type: Date, default: Date.now }
