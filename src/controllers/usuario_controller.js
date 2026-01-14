@@ -23,16 +23,20 @@ const registro = async (req, res) => {
         const token = nuevoUsuario.createToken();
         nuevoUsuario.token = token;
 
-        await sendMailToRegister(correoInstitucional, token);
+        // ✅ GUARDAR PRIMERO
         await nuevoUsuario.save();
 
-        res.status(200).json({ msg: "Revisa tu correo institucional para confirmar tu cuenta." });
+        // ✅ ENVIAR CORREO DESPUÉS
+        await sendMailToRegister(correoInstitucional, token);
+
+        res.status(200).json({
+            msg: "Revisa tu correo institucional para confirmar tu cuenta."
+        });
 
     } catch (error) {
         res.status(500).json({ msg: `❌ Error en el servidor: ${error.message}` });
     }
 };
-
 
 // =========================================================
 // 🔵 CONFIRMAR CORREO
@@ -57,7 +61,6 @@ const confirmarMail = async (req, res) => {
     }
 };
 
-
 // =========================================================
 // 🔵 RECUPERAR CONTRASEÑA (ENVIAR TOKEN)
 // =========================================================
@@ -77,16 +80,17 @@ const recuperarPassword = async (req, res) => {
         const token = usuarioBDD.createToken();
         usuarioBDD.token = token;
 
-        await sendMailToRecoveryPassword(correoInstitucional, token);
         await usuarioBDD.save();
+        await sendMailToRecoveryPassword(correoInstitucional, token);
 
-        res.status(200).json({ msg: "Revisa tu correo electrónico para restablecer tu contraseña" });
+        res.status(200).json({
+            msg: "Revisa tu correo electrónico para restablecer tu contraseña"
+        });
 
     } catch (error) {
         res.status(500).json({ msg: `❌ Error en el servidor - ${error.message}` });
     }
 };
-
 
 // =========================================================
 // 🔵 COMPROBAR TOKEN PARA RECUPERACIÓN
@@ -100,20 +104,20 @@ const comprobarTokenPassword = async (req, res) => {
             return res.status(404).json({ msg: "Token inválido" });
         }
 
-        res.status(200).json({ msg: "Token confirmado, ya puedes crear tu nuevo password" });
+        res.status(200).json({
+            msg: "Token confirmado, ya puedes crear tu nuevo password"
+        });
 
     } catch (error) {
         res.status(500).json({ msg: `❌ Error en el servidor - ${error.message}` });
     }
 };
 
-
 // =========================================================
 // 🔵 CREAR NUEVO PASSWORD
 // =========================================================
 const crearNuevoPassword = async (req, res) => {
     try {
-        // La propiedad 'confirmpassword' debe ser enviada desde el frontend.
         const { password, confirmpassword } = req.body;
         const { token } = req.params;
 
@@ -135,13 +139,14 @@ const crearNuevoPassword = async (req, res) => {
 
         await usuarioBDD.save();
 
-        res.status(200).json({ msg: "Tu contraseña ha sido actualizada correctamente" });
+        res.status(200).json({
+            msg: "Tu contraseña ha sido actualizada correctamente"
+        });
 
     } catch (error) {
         res.status(500).json({ msg: `❌ Error en el servidor - ${error.message}` });
     }
 };
-
 
 // =========================================================
 // 🔵 LOGIN (CON VALIDACIÓN DE ROL)
@@ -150,36 +155,30 @@ const loginUsuario = async (req, res) => {
     try {
         const { correoInstitucional, password, rol } = req.body;
 
-        // Validar campos
         if (!correoInstitucional || !password || !rol) {
             return res.status(400).json({ msg: "Todos los campos son obligatorios" });
         }
 
-        // Buscar al usuario
         const usuarioBDD = await Usuario.findOne({ correoInstitucional });
         if (!usuarioBDD) {
             return res.status(404).json({ msg: "Usuario no registrado" });
         }
 
-        // Validar confirmación de correo
         if (!usuarioBDD.confirmEmail) {
             return res.status(400).json({ msg: "Debes confirmar tu correo primero" });
         }
 
-        // Validar contraseña
         const passwordOK = await usuarioBDD.matchPassword(password);
         if (!passwordOK) {
             return res.status(400).json({ msg: "Contraseña incorrecta" });
         }
 
-        // 👀 VALIDACIÓN CLAVE: ROL SELECCIONADO VS ROL REAL GUARDADO
         if (usuarioBDD.rol !== rol) {
             return res.status(403).json({
                 msg: `No tienes permiso para ingresar como ${rol}.`
             });
         }
 
-        // Generar token
         const token = usuarioBDD.createJWT();
 
         res.status(200).json({
@@ -195,7 +194,6 @@ const loginUsuario = async (req, res) => {
     }
 };
 
-
 // =========================================================
 // 🔵 PERFIL (TOKEN VALIDADO)
 // =========================================================
@@ -205,19 +203,26 @@ const perfil = (req, res) => {
 };
 
 // =========================================================
-// 🔵 ACTUALIZAR PERFIL DE USUARIO (SOLO CAMPOS PERMITIDOS)
+// 🔵 ACTUALIZAR PERFIL DE USUARIO
 // =========================================================
 const actualizarUsuario = async (req, res) => {
     try {
-        const { nombre, telefono, direccion, cedula, descripcion, universidad, carrera, avatar } = req.body;
+        const {
+            nombre,
+            telefono,
+            direccion,
+            cedula,
+            descripcion,
+            universidad,
+            carrera,
+            avatar
+        } = req.body;
 
         const usuarioBDD = await Usuario.findById(req.usuario._id);
-
         if (!usuarioBDD) {
             return res.status(404).json({ msg: "Usuario no encontrado" });
         }
 
-        // Actualizamos solo los campos permitidos
         usuarioBDD.nombre = nombre || usuarioBDD.nombre;
         usuarioBDD.telefono = telefono || usuarioBDD.telefono;
         usuarioBDD.direccion = direccion || usuarioBDD.direccion;
@@ -230,11 +235,12 @@ const actualizarUsuario = async (req, res) => {
         await usuarioBDD.save();
 
         res.status(200).json({ msg: "Información actualizada correctamente" });
+
     } catch (error) {
-        console.error(error);
         res.status(500).json({ msg: "Error al actualizar información" });
     }
 };
+
 // =========================================================
 // 🔵 ACTUALIZAR CONTRASEÑA
 // =========================================================
@@ -246,22 +252,22 @@ const actualizarPassword = async (req, res) => {
             return res.status(400).json({ msg: "Debes llenar todos los campos" });
         }
 
-        // Buscar usuario por id
         const usuarioBDD = await Usuario.findById(req.usuario._id);
-        if (!usuarioBDD) return res.status(404).json({ msg: "Usuario no encontrado" });
+        if (!usuarioBDD) {
+            return res.status(404).json({ msg: "Usuario no encontrado" });
+        }
 
-        // Verificar contraseña actual
         const isMatch = await usuarioBDD.matchPassword(oldPassword);
-        if (!isMatch) return res.status(400).json({ msg: "Contraseña actual incorrecta" });
+        if (!isMatch) {
+            return res.status(400).json({ msg: "Contraseña actual incorrecta" });
+        }
 
-        // Encriptar y actualizar nueva contraseña
         usuarioBDD.password = await usuarioBDD.encryptPassword(newPassword);
         await usuarioBDD.save();
 
         res.status(200).json({ msg: "Contraseña actualizada correctamente" });
 
     } catch (error) {
-        console.error(error);
         res.status(500).json({ msg: "Error al actualizar la contraseña" });
     }
 };
