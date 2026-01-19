@@ -92,27 +92,27 @@ const loginUsuario = async (req, res) => {
         if (!usuarioBDD) return res.status(404).json({ msg: "Usuario no registrado" });
         if (!usuarioBDD.confirmEmail) return res.status(400).json({ msg: "Confirma tu correo" });
 
-        // Verificar contraseña
+        // Validar contraseña
         const passwordOK = await usuarioBDD.matchPassword(password);
         if (!passwordOK) return res.status(400).json({ msg: "Contraseña incorrecta" });
 
-        // 🔒 Validar rol: comparar rol real con rol seleccionado en el login
+        // 🔒 Validación de rol: el rol real vs rol seleccionado
         if (rolSeleccionado && usuarioBDD.rol !== rolSeleccionado) {
-            return res.status(403).json({ 
-                msg: `Acceso denegado. Tu rol real es (${usuarioBDD.rol}) 🚫` 
+            return res.status(403).json({
+                msg: `Acceso denegado. Tu rol real es (${usuarioBDD.rol}) 🚫`
             });
         }
 
         // Generar token JWT
         const token = usuarioBDD.createJWT();
 
-        // Responder al frontend con toda la info necesaria
+        // Devolver datos al frontend
         res.status(200).json({
             msg: "Inicio de sesión exitoso",
             token,
             nombre: usuarioBDD.nombre,
             apellido: usuarioBDD.apellido,
-            rol: usuarioBDD.rol,        // 🔑 Muy importante
+            rol: usuarioBDD.rol,     // 🔑 Muy importante: siempre enviarlo
             fotoPerfil: usuarioBDD.avatar || null
         });
 
