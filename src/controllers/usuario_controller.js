@@ -85,31 +85,42 @@ const crearNuevoPassword = async (req, res) => {
 // 🔵 LOGIN (AUMENTADO PARA ENVIAR FOTO)
 const loginUsuario = async (req, res) => {
     try {
-        const { correoInstitucional, password, rol } = req.body;
+        const { correoInstitucional, password, rol: rolSeleccionado } = req.body;
+
+        // Buscar usuario por correo
         const usuarioBDD = await Usuario.findOne({ correoInstitucional });
         if (!usuarioBDD) return res.status(404).json({ msg: "Usuario no registrado" });
         if (!usuarioBDD.confirmEmail) return res.status(400).json({ msg: "Confirma tu correo" });
 
+        // Verificar contraseña
         const passwordOK = await usuarioBDD.matchPassword(password);
         if (!passwordOK) return res.status(400).json({ msg: "Contraseña incorrecta" });
 
-        if (usuarioBDD.rol !== rol) return res.status(403).json({ msg: "Rol incorrecto" });
+        // 🔒 Validar rol: comparar rol real con rol seleccionado en el login
+        if (rolSeleccionado && usuarioBDD.rol !== rolSeleccionado) {
+            return res.status(403).json({ 
+                msg: `Acceso denegado. Tu rol real es (${usuarioBDD.rol}) 🚫` 
+            });
+        }
 
+        // Generar token JWT
         const token = usuarioBDD.createJWT();
 
+        // Responder al frontend con toda la info necesaria
         res.status(200).json({
             msg: "Inicio de sesión exitoso",
             token,
             nombre: usuarioBDD.nombre,
             apellido: usuarioBDD.apellido,
-            rol: usuarioBDD.rol,
-            // AUMENTO CLAVE: Aquí enviamos la foto de perfil al frontend
-            fotoPerfil: usuarioBDD.avatar 
+            rol: usuarioBDD.rol,        // 🔑 Muy importante
+            fotoPerfil: usuarioBDD.avatar || null
         });
+
     } catch (error) {
         res.status(500).json({ msg: `Error: ${error.message}` });
     }
 };
+
 
 const perfil = (req, res) => {
     const { password, token, ...usuarioSeguro } = req.usuario;
