@@ -1,11 +1,23 @@
-import mongoose from 'mongoose'; // <-- Cambiado de require a import
+import mongoose from 'mongoose';
 
+// 1. Necesitamos definir qué datos lleva cada comentario
+const ComentarioSchema = new mongoose.Schema({
+    autor: String,
+    autorFoto: String,
+    autorEmail: String,
+    contenido: String,
+    fecha: { type: Date, default: Date.now }
+});
+
+// 2. Modificamos el PostSchema para que incluya los comentarios
 const PostSchema = new mongoose.Schema({
     autor: String,
-    autorFoto: String, // <--- AUMENTO: Campo para guardar la foto del usuario que publica
+    autorFoto: String, 
     contenido: String,
     foto: String, 
-    fecha: { type: Date, default: Date.now }
+    fecha: { type: Date, default: Date.now },
+    // AUMENTO CRÍTICO: Aquí se guardarán los comentarios de cada post
+    comentarios: [ComentarioSchema] 
 });
 
 const GrupoSchema = new mongoose.Schema({
@@ -16,6 +28,5 @@ const GrupoSchema = new mongoose.Schema({
     posts: [PostSchema]
 }, { timestamps: true });
 
-// ✅ Cambiado de module.exports a export default
 const Grupo = mongoose.model('Grupo', GrupoSchema);
 export default Grupo;
