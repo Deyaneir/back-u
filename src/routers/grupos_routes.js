@@ -11,6 +11,7 @@ router.delete('/:id', grupoController.eliminarGrupo);
 router.post('/:id/unirse', grupoController.unirseGrupo);
 router.post('/:id/abandonar', grupoController.abandonarGrupo);
 router.post('/:id/post', grupoController.crearPost);
+router.post('/:id/post/:postId/comentar', comentarPost);
 
 // ✅ EXPORTACIÓN POR DEFECTO PARA EL SERVER.JS
 export default router;
