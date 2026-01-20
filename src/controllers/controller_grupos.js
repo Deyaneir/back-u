@@ -83,3 +83,38 @@ export const crearPost = async (req, res) => {
         res.status(400).json({ message: "Error al publicar post" });
     }
 };
+
+// Comentar un post (Agrégalo al final de tu archivo de controladores)
+export const comentarPost = async (req, res) => {
+    try {
+        const { id, postId } = req.params; // id del grupo y id del post
+        const { autor, autorFoto, autorEmail, contenido } = req.body;
+
+        const grupo = await Grupo.findById(id);
+        if (!grupo) return res.status(404).json({ message: "Grupo no encontrado" });
+
+        // Buscamos el post dentro del array de posts del grupo
+        const post = grupo.posts.id(postId);
+        if (!post) return res.status(404).json({ message: "Post no encontrado" });
+
+        // Creamos el nuevo objeto de comentario
+        const nuevoComentario = {
+            autor,
+            autorFoto,
+            autorEmail,
+            contenido,
+            createdAt: new Date()
+        };
+
+        // Lo agregamos al array de comentarios del post
+        post.comentarios.push(nuevoComentario);
+        
+        await grupo.save();
+
+        // Devolvemos el último comentario agregado (el que acabamos de crear)
+        res.status(201).json(post.comentarios[post.comentarios.length - 1]);
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({ message: "Error al agregar comentario" });
+    }
+};
