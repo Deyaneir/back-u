@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import usuarioRouter from "./routers/usuario_routes.js";
 import gruposRouter from "./routers/grupos_routes.js"; // <--- AUMENTADO
 import { v2 as cloudinary } from "cloudinary";
+import adminRoutes from "./routes/admin_routes.js";
 
 dotenv.config();
 
@@ -31,7 +32,8 @@ app.set("port", process.env.PORT || 3000);
 // Rutas
 app.get("/", (req, res) => res.send("Server on"));
 app.use("/api/usuarios", usuarioRouter);
-app.use("/api/grupos", gruposRouter); // <--- AUMENTADO
+app.use("/api/grupos", gruposRouter);
+app.use("/api/admins", adminRoutes);
 
 // Manejo de rutas no encontradas
 app.use((req, res) => res.status(404).send("Endpoint no encontrado - 404"));
