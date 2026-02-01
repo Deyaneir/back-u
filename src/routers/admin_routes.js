@@ -12,6 +12,8 @@ import {
   deleteGroup
 } from "../controllers/controller_grupos.js";
 
+import auth from "../middlewares/auth.js";
+import isAdmin from "../middlewares/isAdmin.js";
 
 const router = Router();
 
