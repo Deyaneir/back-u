@@ -6,7 +6,7 @@ import mongoose from "mongoose";
 import usuarioRouter from "./routers/usuario_routes.js";
 import gruposRouter from "./routers/grupos_routes.js"; // <--- AUMENTADO
 import { v2 as cloudinary } from "cloudinary";
-import adminRoutes from './routes/admin_routes.js';
+import adminRoutes from '../routes/admin_routes.js';
 
 dotenv.config();
 
