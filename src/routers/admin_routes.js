@@ -3,7 +3,7 @@ import {
   getAllUsers,
   updateUser,
   deleteUser
-} from "../controllers/usuario_ontroller.js";
+} from "../controllers/usuario_controller.js";
 
 import {
   createGroup,
