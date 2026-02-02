@@ -127,20 +127,18 @@ const perfil = (req, res) => {
     res.status(200).json(usuarioSeguro);
 };
 
-// 🔵 ACTUALIZAR USUARIO (CORREGIDO PARA ADMIN Y ROLES)
 const actualizarUsuario = async (req, res) => {
     try {
-        const { id } = req.params; // 👈 Importante: Tomar el ID de la URL
         const { nombre, telefono, direccion, cedula, descripcion, universidad, carrera, avatar, rol } = req.body;
+        const { id } = req.params; // Obtenemos el ID del usuario a actualizar
 
-        // Si hay un ID en la URL, actualizamos a ese usuario (uso de Admin)
-        // Si no hay ID, actualizamos al usuario logueado (perfil propio)
-        const idAActualizar = id || req.usuario._id;
+        // Solo admins pueden cambiar otros usuarios
+        const idAActualizar = id || req.usuario._id; // si no hay id, actualiza perfil propio
 
         const usuarioBDD = await Usuario.findById(idAActualizar);
         if (!usuarioBDD) return res.status(404).json({ msg: "Usuario no encontrado" });
 
-        // Actualización de campos
+        // Actualización de campos normales
         usuarioBDD.nombre = nombre || usuarioBDD.nombre;
         usuarioBDD.telefono = telefono || usuarioBDD.telefono;
         usuarioBDD.direccion = direccion || usuarioBDD.direccion;
@@ -149,24 +147,26 @@ const actualizarUsuario = async (req, res) => {
         usuarioBDD.universidad = universidad || usuarioBDD.universidad;
         usuarioBDD.carrera = carrera || usuarioBDD.carrera;
         usuarioBDD.avatar = avatar || usuarioBDD.avatar;
-        
-        // 🔑 ESTA ES LA CLAVE: Permitir que el rol cambie
+
+        // 🔑 Actualizar rol solo si el request lo trae (solo admin)
         if (rol) {
             usuarioBDD.rol = rol;
         }
 
         await usuarioBDD.save();
-        
+
         res.status(200).json({ 
-            msg: "Actualizado correctamente", 
+            msg: "Actualizado correctamente",
             rol: usuarioBDD.rol,
             fotoPerfil: usuarioBDD.avatar 
         });
+
     } catch (error) {
         console.log(error);
         res.status(500).json({ msg: "Error al actualizar usuario" });
     }
 };
+
 
 // 🔴 ELIMINAR USUARIO (SOLO Administrador)
 const deleteUser = async (req, res) => {
