@@ -1,16 +1,13 @@
 import { Router } from "express";
+import * as grupoController from "../controllers/controller_grupos.js";
 import {
   getAllUsers,
   updateUser,
   deleteUser
 } from "../controllers/usuario_controller.js";
 
-import {
-  createGroup,
-  getGroups,
-  updateGroup,
-  deleteGroup
-} from "../controllers/controller_grupos.js";
+import auth from "../middlewares/auth.js";
+import isAdmin from "../middlewares/isAdmin.js";
 
 const router = Router();
 
@@ -20,9 +17,8 @@ router.put("/users/:id", auth, isAdmin, updateUser);
 router.delete("/users/:id", auth, isAdmin, deleteUser);
 
 /* ===== GRUPOS ===== */
-router.get("/groups", auth, isAdmin, getGroups);
-router.post("/groups", auth, isAdmin, createGroup);
-router.put("/groups/:id", auth, isAdmin, updateGroup);
-router.delete("/groups/:id", auth, isAdmin, deleteGroup);
+router.get("/groups", auth, isAdmin, grupoController.listarGrupos);
+router.post("/groups", auth, isAdmin, grupoController.crearGrupo);
+router.delete("/groups/:id", auth, isAdmin, grupoController.eliminarGrupo);
 
 export default router;
