@@ -127,13 +127,20 @@ const perfil = (req, res) => {
     res.status(200).json(usuarioSeguro);
 };
 
-// 🔵 ACTUALIZAR USUARIO (AUMENTADO)
+// 🔵 ACTUALIZAR USUARIO (CORREGIDO PARA ADMIN Y ROLES)
 const actualizarUsuario = async (req, res) => {
     try {
-        const { nombre, telefono, direccion, cedula, descripcion, universidad, carrera, avatar } = req.body;
-        const usuarioBDD = await Usuario.findById(req.usuario._id);
-        if (!usuarioBDD) return res.status(404).json({ msg: "No encontrado" });
+        const { id } = req.params; // 👈 Importante: Tomar el ID de la URL
+        const { nombre, telefono, direccion, cedula, descripcion, universidad, carrera, avatar, rol } = req.body;
 
+        // Si hay un ID en la URL, actualizamos a ese usuario (uso de Admin)
+        // Si no hay ID, actualizamos al usuario logueado (perfil propio)
+        const idAActualizar = id || req.usuario._id;
+
+        const usuarioBDD = await Usuario.findById(idAActualizar);
+        if (!usuarioBDD) return res.status(404).json({ msg: "Usuario no encontrado" });
+
+        // Actualización de campos
         usuarioBDD.nombre = nombre || usuarioBDD.nombre;
         usuarioBDD.telefono = telefono || usuarioBDD.telefono;
         usuarioBDD.direccion = direccion || usuarioBDD.direccion;
@@ -142,26 +149,22 @@ const actualizarUsuario = async (req, res) => {
         usuarioBDD.universidad = universidad || usuarioBDD.universidad;
         usuarioBDD.carrera = carrera || usuarioBDD.carrera;
         usuarioBDD.avatar = avatar || usuarioBDD.avatar;
+        
+        // 🔑 ESTA ES LA CLAVE: Permitir que el rol cambie
+        if (rol) {
+            usuarioBDD.rol = rol;
+        }
 
         await usuarioBDD.save();
-        // AUMENTO: Devolvemos el avatar actualizado
-        res.status(200).json({ msg: "Actualizado", fotoPerfil: usuarioBDD.avatar });
+        
+        res.status(200).json({ 
+            msg: "Actualizado correctamente", 
+            rol: usuarioBDD.rol,
+            fotoPerfil: usuarioBDD.avatar 
+        });
     } catch (error) {
-        res.status(500).json({ msg: "Error al actualizar" });
-    }
-};
-
-const actualizarPassword = async (req, res) => {
-    try {
-        const { oldPassword, newPassword } = req.body;
-        const usuarioBDD = await Usuario.findById(req.usuario._id);
-        const isMatch = await usuarioBDD.matchPassword(oldPassword);
-        if (!isMatch) return res.status(400).json({ msg: "Password actual incorrecto" });
-        usuarioBDD.password = await usuarioBDD.encryptPassword(newPassword);
-        await usuarioBDD.save();
-        res.status(200).json({ msg: "Password actualizado" });
-    } catch (error) {
-        res.status(500).json({ msg: "Error" });
+        console.log(error);
+        res.status(500).json({ msg: "Error al actualizar usuario" });
     }
 };
 
