@@ -186,6 +186,15 @@ const deleteUser = async (req, res) => {
 
 
 export {
-    registro, confirmarMail, recuperarPassword, comprobarTokenPassword,
-    crearNuevoPassword, loginUsuario, perfil, actualizarUsuario, actualizarPassword
+    registro,
+    confirmarMail,
+    recuperarPassword,
+    comprobarTokenPassword,
+    crearNuevoPassword,
+    loginUsuario,
+    perfil,
+    actualizarUsuario,
+    actualizarPassword,
+    deleteUser   
 };
+
