@@ -184,6 +184,18 @@ const deleteUser = async (req, res) => {
     }
 };
 
+// 🔵 OBTENER TODOS LOS USUARIOS (SOLO ADMIN)
+const getAllUsers = async (req, res) => {
+    try {
+        const usuarios = await Usuario.find()
+            .select("-password -token"); // seguridad
+
+        res.status(200).json(usuarios);
+    } catch (error) {
+        res.status(500).json({ msg: "Error al obtener usuarios" });
+    }
+};
+
 
 export {
     registro,
@@ -195,6 +207,7 @@ export {
     perfil,
     actualizarUsuario,
     actualizarPassword,
-    deleteUser   
+    deleteUser,
+    getAllUsers
 };
 
