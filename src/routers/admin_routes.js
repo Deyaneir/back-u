@@ -1,21 +1,39 @@
-import { Router } from "express";
-import * as grupoController from "../controllers/controller_grupos.js";
+import express from "express";
+import { verificarTokenJWT } from "../middlewares/JWT.js";
+import esAdmin from "../middlewares/esAdmin.js";
+
 import {
-  getAllUsers,
-  updateUser,
-  deleteUser
+    getAllUsers,
+    deleteUser,
+    actualizarUsuario
 } from "../controllers/usuario_controller.js";
 
-const router = Router();
+const router = express.Router();
 
-/* ===== USUARIOS ===== */
-router.get("/users", auth, isAdmin, getAllUsers);
-router.put("/users/:id", auth, isAdmin, updateUser);
-router.delete("/users/:id", auth, isAdmin, deleteUser);
+/* ===== USUARIOS (SOLO ADMIN) ===== */
 
-/* ===== GRUPOS ===== */
-router.get("/groups", auth, isAdmin, grupoController.listarGrupos);
-router.post("/groups", auth, isAdmin, grupoController.crearGrupo);
-router.delete("/groups/:id", auth, isAdmin, grupoController.eliminarGrupo);
+// Listar usuarios
+router.get(
+    "/usuarios",
+    verificarTokenJWT,
+    esAdmin,
+    getAllUsers
+);
+
+// Actualizar usuario
+router.put(
+    "/usuarios/:id",
+    verificarTokenJWT,
+    esAdmin,
+    actualizarUsuario
+);
+
+// Eliminar usuario
+router.delete(
+    "/usuarios/:id",
+    verificarTokenJWT,
+    esAdmin,
+    deleteUser
+);
 
 export default router;
