@@ -213,4 +213,3 @@ export {
     deleteUser,
     getAllUsers
 };
-
