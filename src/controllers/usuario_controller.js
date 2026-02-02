@@ -165,6 +165,26 @@ const actualizarPassword = async (req, res) => {
     }
 };
 
+// 🔴 ELIMINAR USUARIO (SOLO Administrador)
+const deleteUser = async (req, res) => {
+    try {
+        // El middleware ya validó que es admin
+        const { id } = req.params;
+
+        const usuario = await Usuario.findById(id);
+        if (!usuario) {
+            return res.status(404).json({ msg: "Usuario no encontrado" });
+        }
+
+        await usuario.deleteOne();
+
+        res.status(200).json({ msg: "Usuario eliminado correctamente 🗑️" });
+    } catch (error) {
+        res.status(500).json({ msg: "Error al eliminar usuario" });
+    }
+};
+
+
 export {
     registro, confirmarMail, recuperarPassword, comprobarTokenPassword,
     crearNuevoPassword, loginUsuario, perfil, actualizarUsuario, actualizarPassword
